@@ -1,0 +1,37 @@
+"上櫃"
+import requests
+
+headers={
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36"
+        }
+res2=requests.get("https://justnew.masterlink.com.tw/z/ze/zek/zek.djhtm"
+                ,headers=headers)
+from bs4 import BeautifulSoup
+soup2=BeautifulSoup(res2.text,"lxml")
+choose2=soup2.select_one("#SysJustIFRAMEDIV")
+
+import pandas
+data2=pandas.read_html(choose2.prettify())
+buy2=data2[2]
+
+res3=requests.get("https://jdata.yuanta.com.tw/z/zg/zg_F_1_1.djhtm"
+                ,headers=headers)
+from bs4 import BeautifulSoup
+soup3=BeautifulSoup(res3.text,"lxml")
+choose3=soup3.select_one("#SysJustIFRAMEDIV")
+import pandas
+data3=pandas.read_html(choose3.prettify())
+main2=pandas.DataFrame(data3[2]).drop(labels=[0],axis=0)
+
+result=pandas.DataFrame(columns = ["股票","外資","投信","自營商","主力買賣超"])
+for i in range(2,len(buy2)-1):
+    for j in range(1,51):
+        num=buy2.iloc[i][0].split(" ")
+        num2=main2.iloc[j][1].split(" ")
+        if(float(buy2.iloc[i][1])>0.0and float(buy2.iloc[i][2])>0.0 and float(buy2.iloc[i][3])>0.0 and 
+           num[0]==num2[0]):
+            new=pandas.DataFrame({"股票":buy2.iloc[i][0],"外資":str(buy2.iloc[i][1]),"投信":str
+                                  (buy2.iloc[i][2]),"自營商":str(buy2.iloc[i][3]),
+                                 "主力買賣超":str(main2.iloc[j][7])},index=[0])
+            result=result.append(new,ignore_index=True)
+result
